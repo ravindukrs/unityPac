@@ -11,8 +11,13 @@ import OnMeScreen from "./OnMeScreen";
 import WalletScreen from "./WalletScreen";
 import HandShakeScreen from "./HandShakeScreen";
 import LogoutScreen from "./LogoutScreen";
+<<<<<<< HEAD
+import getDirections from 'react-native-google-maps-directions'
+Geocoder.init("AIzaSyCPaudKWSvsWVrhth6Io1oPvC5aB7AwxM8");
+=======
 
 Geocoder.init("HIDDEN KEY");
+>>>>>>> e094952eb73a4b7ee34c097be96fc51a0c24fc4d
 
 
 const { height, width } = Dimensions.get('screen');
@@ -30,7 +35,8 @@ const parcels = [
       latitude: 6.9734998,
       longitude: 79.9164169,
     },
-    price: 120.50
+    price: 120.50,
+    address: null
 
   },
   {
@@ -46,7 +52,8 @@ const parcels = [
       latitude: 6.9671388,
       longitude: 79.9142919,
     },
-    price: 150.50
+    price: 150.50,
+    address: null
   },
   {
     id: 3,
@@ -61,7 +68,8 @@ const parcels = [
       latitude: 6.9685184,
       longitude: 79.9085285,
     },
-    price: 60.24
+    price: 60.24,
+    address: null
   },
   {
     id: 4,
@@ -73,38 +81,93 @@ const parcels = [
     contact: "071 7503812",
     rating: 3.3,
     location: {
-      latitude: 6.9685200,
-      longitude: 79.9085285,
+      latitude: 6.981979,
+      longitude: 79.9008464,
     },
-    price: 120.50
+    price: 120.50,
+    address: null
   },
 
 ];
-
+var addPart = null;
 export class HomeScreen extends React.Component {
   state = {
     mapRegion: { latitude: 6.9752, longitude: 79.9207, latitudeDelta: 0.0922, longitudeDelta: 0.0421 },
-    address: null,
+    addressesLoaded: false,
     active: null
   };
 
-  getAddress = (lati, longi) => {
-    Geocoder.from(lati, longi)
-      .then(json => {
-        var addressComponent = json.results[0].plus_code.compound_code;
-        let stradd = addressComponent
-        console.log(stradd);
-        //console.log(stradd);
-        this.setState({ address: stradd });
-        return (stradd);
-      })
-      .catch(error => console.warn(error));
+  handleGetDirections = (parcel) => {
+    console.log("Touched and Fired");
+    const data = {
+       source: {
+        latitude: 6.9734998,
+        longitude: 79.9164169
+      },
+      destination: {
+        latitude: parcel.location.latitude,
+        longitude: parcel.location.longitude
+      },
+      params: [
+        {
+          key: "travelmode",
+          value: "driving"        // may be "walking", "bicycling" or "transit" as well
+        },
+        {
+          key: "dir_action",
+          value: "navigate"       // this instantly initializes navigation using the given travel mode
+        }
+      ],
+      waypoints: [
+      
+      ]
+    }
+ 
+    getDirections(data)
   }
 
+  async componentDidMount() {
+    await this.populateAddresses();
+    await console.log(`Current State 2: ${this.state.addressesLoaded}`);
+    await this.setState({addressesLoaded: true });
+    await console.log(`Current State 3: ${this.state.addressesLoaded}`);
+    await this.setState({addressesLoaded: true });
+    for (let parcel of parcels) {
+      console.log(`Test Parcel Address: ${parcel.address}`);
+    }
+    this.setState({addressesLoaded: true });
+  }
+
+  // getAddress = (parcel) => {
+  //   Geocoder.from(parcel.location.latitude, parcel.location.longitude)
+  //     .then(json => {
+  //       var addressComponent = json.results[0].address_components[0];    
+  //       addPart = addressComponent.long_name;
+  //       console.log(`From Adpart: ${addPart}`);
+  //       return;
+  //     })
+  //     .catch(error => console.warn(`Ravindu's Error: ${error}`));
+  // };
+
+  populateAddresses = () =>{
+    for (let parcel of parcels) {
+      Geocoder.from(parcel.location.latitude, parcel.location.longitude)
+      .then(json=>{
+        var addressComponent = json.results[0].address_components[0];    
+        addPart = addressComponent.long_name;
+      }).then(parcel.address = addPart).then(console.log(parcel.address));
+      // await console.log("Execute Function");
+      // await this.getAddress(parcel);
+      // parcel.address = addPart;
+      // await console.log(`Parcel Address: ${parcel.address}`);
+  }
+
+   console.log(`Current State 1: ${this.state.addressesLoaded}`);
+  }
 
   renderPackage = (item) => {
     return (
-      <TouchableWithoutFeedback key={`parcel-${item.id}`} onPress = {() => this.setState({active: item.id})}>
+      <TouchableWithoutFeedback key={`parcel-${item.id}`} onPress={() => this.setState({ active: item.id })}>
         <View style={styles.parcel}>
           <View style={{ flex: 1, flexDirection: "column" }}>
             <View style={{ flex: 1, flexDirection: "row" }}>
@@ -146,6 +209,15 @@ export class HomeScreen extends React.Component {
             </View>
           </View>
           <View style={{ flex: 1, }}>
+          <View style={{ flex: 1, flexDirection: "row" }}>
+              <Icon
+                name={"md-clock"}
+                size={20}
+                color={"rgba(225,225,225,0.85)"}
+                style={{ paddingRight: 9 }}
+              />
+              <Text>{item.address}</Text>
+            </View>
             <View style={{ flex: 1, flexDirection: "row" }}>
               <Icon
                 name={"ios-person"}
@@ -243,10 +315,13 @@ export class HomeScreen extends React.Component {
             <Marker
               key={`marker-${parcel.id}`}
               coordinate={parcel.location}
+              onPress={() => this.handleGetDirections(parcel)}
             >
+              
               <View style={[styles.marker, this.state.active === parcel.id ? styles.active : null]}>
                 <Text style={{ color: "red", fontWeight: "bold" }}>Rs.{parcel.price}</Text><Text style={{ color: "#7D818A", fontWeight: "bold" }}>  ({parcel.weight}KG)</Text>
               </View>
+              
             </Marker>
           ))}
 
@@ -343,7 +418,7 @@ const styles = StyleSheet.create({
     right: 5,
     left: 5,
     bottom: 70,
-    height: "16%"
+    height: "22%"
   },
   parcel: {
     flexDirection: 'row',
@@ -379,7 +454,7 @@ const styles = StyleSheet.create({
   },
   active: {
     borderColor: "red",
-    borderWidth: 0.7,
+    borderWidth: 1.2,
   }
 });
 
