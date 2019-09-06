@@ -12,7 +12,7 @@ import WalletScreen from "./WalletScreen";
 import HandShakeScreen from "./HandShakeScreen";
 import LogoutScreen from "./LogoutScreen";
 
-Geocoder.init("AIzaSyCPaudKWSvsWVrhth6Io1oPvC5aB7AwxM8");
+Geocoder.init("HIDDEN KEY");
 
 
 const { height, width } = Dimensions.get('screen');
